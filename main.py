@@ -11,9 +11,12 @@ class GuessingGame:
 
     def generate_answers(self):
         for num in self.numbers:
-            other_numbers = [n for n in self.numbers if n != num]
-            answer = random.choice(other_numbers)
-            self.answers[num] = self.character_to_number[answer]
+            if self.character_to_number[num] == "乱":
+                answer = random.choice(self.characters)  # Allow "乱" to answer itself
+            else:
+                other_characters = [c for c in self.characters if c != self.character_to_number[num]]
+                answer = random.choice(other_characters)
+            self.answers[num] = answer
 
     def play_game(self):
         self.generate_answers()
