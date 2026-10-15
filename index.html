@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111c2c">
+  <meta name="description" content="《猜猜谁是“乱”》：三人、三种身份、一场只能靠逻辑破解的推理游戏。">
+  <title>猜猜谁是“乱”？｜逻辑推理小游戏</title>
+  <style>
+    :root {color-scheme:dark; --bg:#101928; --panel:#1b293b; --panel2:#233349; --line:#39506b; --text:#edf3f7; --muted:#a8b7c8; --accent:#f5cb88; --accent-ink:#25202a; --good:#8edbb8; --bad:#ffb4a9;}
+    * {box-sizing:border-box}
+    body {margin:0; background:radial-gradient(ellipse 80% 45% at 80% 0%,#263955 0%,transparent 70%),var(--bg); color:var(--text); font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; min-height:100vh; line-height:1.65}
+    button,select {font:inherit}
+    button {cursor:pointer; border:0; transition:transform .15s, background .15s; touch-action:manipulation}
+    button:active {transform:scale(.985)}
+    button:focus-visible,select:focus-visible {outline:3px solid var(--accent); outline-offset:3px}
+    .shell {width:min(900px,calc(100% - 28px)); margin:0 auto; padding:30px 0 54px}
+    header {display:flex; justify-content:space-between; align-items:start; gap:12px; margin-bottom:25px}
+    .eyebrow {font-size:12px; letter-spacing:.21em; color:var(--accent); font-weight:750; text-transform:uppercase}
+    h1 {font-size:clamp(29px,5.6vw,46px); letter-spacing:.02em; margin:6px 0 4px; line-height:1.25}
+    .sub {color:var(--muted); margin:0; font-size:14px}
+    .reset {background:transparent; color:var(--muted); border:1px solid var(--line); border-radius:11px; padding:8px 13px; white-space:nowrap; margin-top:7px}
+    .panel {background:rgba(27,41,59,.96); border:1px solid var(--line); border-radius:22px; padding:clamp(18px,4vw,32px); box-shadow:0 22px 80px #080e1b66}
+    .topline {display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:10px}
+    .tag {display:inline-flex; color:var(--accent); background:#f5cb8817; border:1px solid #f5cb8850; border-radius:100px; font-size:12px; font-weight:800; padding:4px 12px; letter-spacing:.12em}
+    .round {color:var(--muted); font-size:13px}
+    h2 {font-size:clamp(21px,4.5vw,27px); margin:18px 0 7px; line-height:1.4}
+    .helper {font-size:14px; color:var(--muted); margin:4px 0 18px}
+    .talks {display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:22px 0}
+    .talk {text-align:center; background:var(--panel2); border:1px solid #43536a; border-radius:16px; padding:20px 8px 18px}
+    .talk .num {color:var(--muted); font-size:14px}
+    .talk .spoken {font-size:clamp(34px,7vw,53px); font-weight:800; line-height:1.4; margin-top:7px; font-family:serif}
+    .talk .said {font-size:12px;color:var(--muted)}
+    .bar {border-top:1px solid var(--line); padding-top:21px; margin-top:22px}
+    h3 {font-size:17px; margin:0 0 8px}
+    .soft {font-size:14px; color:var(--muted); margin:4px 0 16px}
+    .choices {display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px}
+    .btn {background:var(--panel2); color:var(--text); border:1px solid #53647a; border-radius:12px; padding:13px 10px; font-weight:700; min-height:52px}
+    .btn:hover {background:#304360}
+    .primary {background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:800}
+    .primary:hover {background:#ffe0a9}
+    .secondary {background:transparent; color:var(--muted)}
+    .full {display:block; width:100%; margin-top:12px}
+    .hint {border-radius:12px; padding:12px 14px; background:#f5cb8812; border:1px solid #f5cb8845; color:#f5d8aa; font-size:14px; margin:12px 0}
+    .asked {border-radius:12px; padding:12px 14px; background:#8edbb816; border:1px solid #8edbb855; margin:4px 0 15px; color:var(--good)}
+    .pick-row {display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:16px; margin:9px 0}
+    select {width:100%; color:var(--text); background:var(--panel2); border:1px solid #53647a; padding:12px; border-radius:11px}
+    .error {color:var(--bad); font-size:14px; min-height:20px}
+    .result {border-radius:15px; background:var(--panel2); padding:16px; border:1px solid #53647a; margin:13px 0}
+    .status {font-size:20px; font-weight:800; margin:0}
+    .success {color:var(--good)}
+    .fail {color:var(--bad)}
+    .setline {font-size:14px; color:var(--text); padding:8px 0; border-bottom:1px solid #43536a}
+    .setline:last-child {border:0}
+    .truth {display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:10px 0}
+    .truth span {text-align:center; background:#101928; border:1px solid #43536a; padding:10px 4px; border-radius:9px; font-size:14px}
+    .footer {margin:22px 0 0; font-size:13px; color:var(--muted); text-align:center}
+    .footer a {color:#c8d7ee}
+    @media(max-width:540px) {.shell{padding-top:20px}.panel{border-radius:18px}.reset{font-size:12px;padding:7px 9px}.talks{gap:7px}.talk{padding:16px 3px}.choices{gap:7px}.btn{padding:12px 5px}.sub{font-size:12px}}
+    @media(prefers-reduced-motion:reduce) {button{transition:none}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div><div class="eyebrow">A little logic mystery · Web demo</div><h1>猜猜谁是“乱”？</h1><p class="sub">三个人，三个身份。每个人都不会说出自己的真实身份。</p></div>
+      <button class="reset" type="button" data-action="restart">从头开始</button>
+    </header>
+    <section class="panel" id="game" aria-live="polite"></section>
+    <p class="footer">网页试玩版 · 基于 Python V0.3 改编 · 不会上传玩家数据</p>
+  </main>
+  <script>
+  'use strict';
+  const CHARACTERS = ['温', '顺', '乱'];
+  const NUMBERS = ['1', '2', '3'];
+  const ALL_ARRANGEMENTS = [];
+  for (const a of CHARACTERS) for (const b of CHARACTERS) for (const c of CHARACTERS) {
+    if (new Set([a, b, c]).size === 3) ALL_ARRANGEMENTS.push({'1':a,'2':b,'3':c});
+  }
+  const state = {level:1, round:0, assignment:{}, answers:{}, target:null, askNum:null, secondAnswer:null, stage:'decision', outcome:null};
+  const el = document.getElementById('game');
+  const choose = arr => arr[Math.floor(Math.random()*arr.length)];
+  const shuffled = arr => {
+    const copy = [...arr];
+    for (let i=copy.length-1;i>0;i--) {
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  };
+  function candidates(askNum=null, secondAnswer=null) {
+    return ALL_ARRANGEMENTS.filter(candidate =>
+      NUMBERS.every(num => candidate[num] !== state.answers[num]) &&
+      (askNum === null || candidate[askNum] !== secondAnswer)
+    );
+  }
+  function provableFor(target, list) {
+    const numbers = new Set(list.map(candidate => NUMBERS.find(num => candidate[num] === target)));
+    return numbers.size === 1;
+  }
+  function askAgain(num) {
+    return CHARACTERS.find(char => char !== state.assignment[num] && char !== state.answers[num]);
+  }
+  function canProve(list) {
+    return state.level === 3 ? list.length === 1 : provableFor(state.target, list);
+  }
+  function startRound() {
+    state.round++;
+    state.askNum = null;
+    state.secondAnswer = null;
+    state.stage = state.level === 1 ? 'answer' : 'decision';
+    state.outcome = null;
+    state.target = state.level === 1 ? '乱' : state.level === 2 ? choose(CHARACTERS) : null;
+    for (let attempts = 0; attempts < 1000; attempts++) {
+      const permutation = shuffled(CHARACTERS);
+      state.assignment = Object.fromEntries(NUMBERS.map((n,i) => [n,permutation[i]]));
+      state.answers = Object.fromEntries(NUMBERS.map(n => [n,choose(CHARACTERS.filter(c => c !== state.assignment[n]))]));
+      const first = candidates();
+      const levelOneOK = state.level !== 1 || provableFor('乱', first);
+      // Every round must be logically solvable with at most one well-chosen follow-up.
+      const solvable = canProve(first) || NUMBERS.some(n => canProve(candidates(n, askAgain(n))));
+      if (levelOneOK && solvable) { render(); return; }
+    }
+    el.textContent = '题目生成失败，请刷新页面重试。';
+  }
+  const goal = () => state.level === 3 ? '还原全部三个人的真实身份' : `找出谁是「${state.target}」`;
+  const arrangementText = a => NUMBERS.map(n => `${n}号＝${a[n]}`).join(' · ');
+  function render() {
+    const level=state.level;
+    let html = `<div class="topline"><span class="tag">LEVEL 0${level}</span><span class="round">第 ${state.round} 局</span></div>
+      <h2>本局任务：${goal()}</h2>
+      <p class="helper">每个人拥有一种不同的真实身份，但第一次都只会说出一个假身份。</p>
+      <div class="talks">${NUMBERS.map(n => `<div class="talk"><div class="num">${n} 号</div><div class="spoken">${state.answers[n]}</div><div class="said">他说自己是……</div></div>`).join('')}</div>`;
+    if (state.askNum !== null) html += `<div class="asked">你追问了 ${state.askNum} 号，他第二次回答：<strong>${state.secondAnswer}</strong>（仍然是假身份）。</div>`;
+    if (state.stage === 'decision') {
+      html += `<div class="bar"><h3>下一步怎么做？</h3><p class="soft">你可以直接作答，也可以选一个人追问一次。他必须说出另一种不同的假身份。</p>
+        <button class="btn primary full" type="button" data-action="skip">我已经知道答案，直接作答</button>
+        <p class="soft" style="margin-top:20px;margin-bottom:4px">或者选择追问对象：</p>
+        <div class="choices">${NUMBERS.map(n=>`<button class="btn" data-action="ask" data-num="${n}" type="button">追问 ${n} 号</button>`).join('')}</div>
+        <p class="soft">只有一次追问机会。想清楚问谁，线索才可能足够。</p></div>`;
+    } else if (state.stage === 'answer') {
+      const list=candidates(state.askNum,state.secondAnswer);
+      if (!canProve(list)) {
+        html += `<div class="bar"><h3>线索还不够</h3><div class="hint">目前仍有 ${list.length} 种符合线索的可能，不能靠逻辑唯一确定${level===3?'全部身份':`谁是「${state.target}」`}。猜中也不算推理成功。</div>`;
+        if (state.askNum===null && level>=2) html += `<button class="btn primary full" type="button" data-action="back">返回并选择追问</button>`;
+        else html += `<button class="btn primary full" type="button" data-action="ambiguous">看看为什么无法确定</button>`;
+        html += '</div>';
+      } else if (level===3) {
+        html += `<div class="bar"><h3>现在请还原所有人的身份</h3><p class="soft">分别选择1、2、3号的真实身份。温、顺、乱各出现一次。</p>
+        ${NUMBERS.map(n=>`<label class="pick-row"><span>${n} 号的真实身份</span><select id="guess${n}" aria-label="${n}号的真实身份"><option value="">请选择</option>${CHARACTERS.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></label>`).join('')}
+        <p class="error" id="error" role="alert"></p><button class="btn primary full" type="button" data-action="submit-all">提交完整推理</button></div>`;
+      } else {
+        html += `<div class="bar"><h3>谁是「${state.target}」？</h3><p class="soft">选择你认为拥有该真实身份的人。</p>
+          <div class="choices">${NUMBERS.map(n=>`<button class="btn primary" type="button" data-action="guess" data-num="${n}">${n} 号</button>`).join('')}</div></div>`;
+      }
+    } else if (state.stage === 'result') {
+      const {correct, provable, noAnswer, list, finishedLevel} = state.outcome;
+      let title, explanation;
+      if (noAnswer) {title='这次线索还不够'; explanation='你获得的线索仍允许多种答案。游戏不会要求你靠猜测通关；下次试试追问另一个人。';}
+      else if (!correct) {title='这次判断不正确'; explanation='没关系，看看下面的身份排列和真实答案，再试一次。';}
+      else if (!provable) {title='答案碰巧正确，但不能证明'; explanation='现有线索还不够确定唯一答案，所以暂时不升级。';}
+      else {title='推理成功！'; explanation=finishedLevel<3?`答案正确，而且线索充分。下一局进入 Level ${finishedLevel+1}。`:'三个等级全部通关！你可以继续挑战高级模式。';}
+      html += `<div class="bar"><div class="result"><p class="status ${correct&&provable?'success': 'fail'}">${title}</p><p class="soft" style="margin-bottom:0">${explanation}</p></div>
+        <h3>符合当前线索的身份组合（${list.length} 种）</h3>
+        <div class="result">${list.map(a=>`<div class="setline">${arrangementText(a)}</div>`).join('')}</div>
+        <h3>本局真实身份</h3><div class="truth">${NUMBERS.map(n=>`<span>${n} 号：<b>${state.assignment[n]}</b></span>`).join('')}</div>
+        <button class="btn primary full" type="button" data-action="next">${correct&&provable&&finishedLevel<3?`进入 Level ${finishedLevel+1}`:'再玩一局'}</button>
+        <button class="btn secondary full" type="button" data-action="restart">从 Level 1 重新挑战</button></div>`;
+    }
+    el.innerHTML=html;
+  }
+  function finish(guess, noAnswer=false) {
+    const list=candidates(state.askNum,state.secondAnswer);
+    const provable=canProve(list);
+    const correct=!noAnswer && (state.level===3
+      ? NUMBERS.every(n=>guess[n]===state.assignment[n])
+      : state.assignment[guess]===state.target);
+    state.outcome={correct,provable,noAnswer,list,finishedLevel:state.level};
+    state.stage='result';
+    render();
+  }
+  el.addEventListener('click', event => {
+    const button=event.target.closest('button[data-action]');
+    if (!button) return;
+    const action=button.dataset.action;
+    if (action==='ask' && state.stage==='decision') {
+      state.askNum=button.dataset.num;
+      state.secondAnswer=askAgain(state.askNum);
+      state.stage='answer'; render();
+    } else if (action==='skip' && state.stage==='decision') {
+      state.stage='answer'; render();
+    } else if (action==='back' && state.stage==='answer' && state.askNum===null) {
+      state.stage='decision';render();
+    } else if (action==='ambiguous' && state.stage==='answer') {
+      finish(null,true);
+    } else if (action==='guess' && state.stage==='answer' && state.level!==3) {
+      finish(button.dataset.num);
+    } else if (action==='submit-all' && state.stage==='answer' && state.level===3) {
+      const guess=Object.fromEntries(NUMBERS.map(n=>[n,document.getElementById('guess'+n).value]));
+      if (new Set(Object.values(guess)).size!==3 || Object.values(guess).some(v=>!CHARACTERS.includes(v))) {
+        document.getElementById('error').textContent='请将温、顺、乱分别分配给三个人，每种身份恰好一次。';return;
+      }
+      finish(guess);
+    } else if (action==='next' && state.stage==='result') {
+      if (state.outcome.correct && state.outcome.provable && state.level<3) state.level++;
+      startRound();
+    } else if (action==='restart') {
+      restart();
+    }
+  });
+  document.querySelector('header').addEventListener('click',event=>{
+    if (event.target.closest('[data-action="restart"]')) restart();
+  });
+  function restart() {state.level=1;state.round=0;startRound();}
+  startRound();
+  </script>
+</body>
+</html>
