@@ -19,6 +19,7 @@
     .eyebrow {font-size:12px; letter-spacing:.21em; color:var(--accent); font-weight:750; text-transform:uppercase}
     h1 {font-size:clamp(29px,5.6vw,46px); letter-spacing:.02em; margin:6px 0 4px; line-height:1.25}
     .sub {color:var(--muted); margin:0; font-size:14px}
+    .header-actions {display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
     .reset {background:transparent; color:var(--muted); border:1px solid var(--line); border-radius:11px; padding:8px 13px; white-space:nowrap; margin-top:7px}
     .panel {background:rgba(27,41,59,.96); border:1px solid var(--line); border-radius:22px; padding:clamp(18px,4vw,32px); box-shadow:0 22px 80px #080e1b66}
     .topline {display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:10px}
@@ -30,7 +31,7 @@
     .talk {text-align:center; background:var(--panel2); border:1px solid #43536a; border-radius:16px; padding:20px 8px 18px}
     .talk .num {color:var(--muted); font-size:14px}
     .talk .spoken {font-size:clamp(34px,7vw,53px); font-weight:800; line-height:1.4; margin-top:7px; font-family:serif}
-    .talk .said {font-size:12px;color:var(--muted)}
+    .talk .num {white-space:nowrap}
     .bar {border-top:1px solid var(--line); padding-top:21px; margin-top:22px}
     h3 {font-size:17px; margin:0 0 8px}
     .soft {font-size:14px; color:var(--muted); margin:4px 0 16px}
@@ -41,6 +42,14 @@
     .primary:hover {background:#ffe0a9}
     .secondary {background:transparent; color:var(--muted)}
     .full {display:block; width:100%; margin-top:12px}
+    .quickrule {border-left:3px solid var(--accent); padding:9px 12px; margin:14px 0 20px; background:#f5cb8810; color:var(--text); border-radius:0 9px 9px 0; font-size:14px}
+    .guide-lead {color:var(--text); font-size:16px; margin:8px 0 22px}
+    .guide-steps {display:grid; gap:12px; margin:18px 0}
+    .guide-step {background:var(--panel2); border:1px solid var(--line); padding:15px; border-radius:14px}
+    .guide-step strong {display:block; margin-bottom:5px}
+    .guide-step p {margin:0; color:var(--muted); font-size:14px}
+    .guide-example {margin:12px 0; padding:14px; background:#f5cb8812; border:1px solid #f5cb8850; border-radius:12px; font-size:15px}
+    .guide-levels {color:var(--muted); font-size:13px; margin:12px 0 0; line-height:1.8}
     .hint {border-radius:12px; padding:12px 14px; background:#f5cb8812; border:1px solid #f5cb8845; color:#f5d8aa; font-size:14px; margin:12px 0}
     .asked {border-radius:12px; padding:12px 14px; background:#8edbb816; border:1px solid #8edbb855; margin:4px 0 15px; color:var(--good)}
     .pick-row {display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:16px; margin:9px 0}
@@ -63,8 +72,8 @@
 <body>
   <main class="shell">
     <header>
-      <div><div class="eyebrow">A little logic mystery · Web demo</div><h1>猜猜谁是“乱”？</h1><p class="sub">三个人，三个身份。每个人都不会说出自己的真实身份。</p></div>
-      <button class="reset" type="button" data-action="restart">从头开始</button>
+      <div><div class="eyebrow">三人逻辑推理 · 网页试玩版</div><h1>猜猜谁是“乱”？</h1><p class="sub">看三个人说的假身份，推理出谁才是「温」「顺」「乱」。</p></div>
+      <div class="header-actions"><button class="reset" type="button" data-action="rules">玩法说明</button><button class="reset" type="button" data-action="restart">从头开始</button></div>
     </header>
     <section class="panel" id="game" aria-live="polite"></section>
     <p class="footer">网页试玩版 · 基于 Python V0.3 改编 · 不会上传玩家数据</p>
@@ -77,7 +86,7 @@
   for (const a of CHARACTERS) for (const b of CHARACTERS) for (const c of CHARACTERS) {
     if (new Set([a, b, c]).size === 3) ALL_ARRANGEMENTS.push({'1':a,'2':b,'3':c});
   }
-  const state = {level:1, round:0, assignment:{}, answers:{}, target:null, askNum:null, secondAnswer:null, stage:'decision', outcome:null};
+  const state = {level:1, round:0, assignment:{}, answers:{}, target:null, askNum:null, secondAnswer:null, stage:'intro', showRules:true, outcome:null};
   const el = document.getElementById('game');
   const choose = arr => arr[Math.floor(Math.random()*arr.length)];
   const shuffled = arr => {
@@ -105,6 +114,7 @@
     return state.level === 3 ? list.length === 1 : provableFor(state.target, list);
   }
   function startRound() {
+    state.showRules = false;
     state.round++;
     state.askNum = null;
     state.secondAnswer = null;
@@ -126,11 +136,25 @@
   const goal = () => state.level === 3 ? '还原全部三个人的真实身份' : `找出谁是「${state.target}」`;
   const arrangementText = a => NUMBERS.map(n => `${n}号＝${a[n]}`).join(' · ');
   function render() {
+    if (state.showRules) {
+      el.innerHTML = `<div class="topline"><span class="tag">新手指南 · 约30秒</span></div>
+        <h2>你要做的，是从三句假话里找出真相。</h2>
+        <p class="guide-lead">这里没有需要阅读的故事段落。游戏会给你 <strong>1号、2号、3号</strong> 三个人的发言，你要根据他们说的话，推理出谁是什么身份。</p>
+        <div class="guide-steps">
+          <div class="guide-step"><strong>① 先记住三个身份</strong><p>三个人的真实身份分别是「温」「顺」「乱」，一人一个，不会重复。「1号」「2号」「3号」只是编号。</p></div>
+          <div class="guide-step"><strong>② 再看三张发言卡片</strong><p>卡片显示的是他们<strong>说出的身份</strong>，不是他们真正的身份！每个人都不会说出自己的真实身份。</p></div>
+          <div class="guide-step"><strong>③ 排除、推理、点击答案</strong><p>根据三个人说的假身份，排除不可能的答案。先看本局任务要找谁，再点击你判断的编号提交答案。</p></div>
+        </div>
+        <div class="guide-example">举个例子：<strong>「1号说：乱」</strong>，这不代表1号是乱；恰恰相反，说明 <strong>1号一定不是乱</strong>。</div>
+        <p class="guide-levels">Level 1：找出「乱」，不需要追问。<br>Level 2：随机寻找一种身份，可选追问一人一次。<br>Level 3：推理出三个人的全部身份，也可追问一次。<br>追问得到的仍是假身份，而且与第一次的回答不同。</p>
+        <button class="btn primary full" type="button" data-action="${state.round ? 'resume' : 'start'}">${state.round ? '明白了，返回本局' : '明白了，开始第一局'}</button>`;
+      return;
+    }
     const level=state.level;
     let html = `<div class="topline"><span class="tag">LEVEL 0${level}</span><span class="round">第 ${state.round} 局</span></div>
       <h2>本局任务：${goal()}</h2>
-      <p class="helper">每个人拥有一种不同的真实身份，但第一次都只会说出一个假身份。</p>
-      <div class="talks">${NUMBERS.map(n => `<div class="talk"><div class="num">${n} 号</div><div class="spoken">${state.answers[n]}</div><div class="said">他说自己是……</div></div>`).join('')}</div>`;
+      <p class="quickrule">看下面三张卡片：上面的字是他们<strong>说出的假身份</strong>，不是他们真正的身份。比如「1号说乱」意味着1号一定不是乱。</p>
+      <div class="talks">${NUMBERS.map(n => `<div class="talk" aria-label="${n}号说：${state.answers[n]}"><div class="num">${n} 号说</div><div class="spoken">${state.answers[n]}</div></div>`).join('')}</div>`;
     if (state.askNum !== null) html += `<div class="asked">你追问了 ${state.askNum} 号，他第二次回答：<strong>${state.secondAnswer}</strong>（仍然是假身份）。</div>`;
     if (state.stage === 'decision') {
       html += `<div class="bar"><h3>下一步怎么做？</h3><p class="soft">你可以直接作答，也可以选一个人追问一次。他必须说出另一种不同的假身份。</p>
@@ -183,7 +207,13 @@
     const button=event.target.closest('button[data-action]');
     if (!button) return;
     const action=button.dataset.action;
-    if (action==='ask' && state.stage==='decision') {
+    if (action==='start' && state.showRules && state.round===0) {
+      startRound();
+    } else if (action==='resume' && state.showRules && state.round>0) {
+      state.showRules=false;render();
+    } else if (state.showRules) {
+      return;
+    } else if (action==='ask' && state.stage==='decision') {
       state.askNum=button.dataset.num;
       state.secondAnswer=askAgain(state.askNum);
       state.stage='answer'; render();
@@ -210,9 +240,10 @@
   });
   document.querySelector('header').addEventListener('click',event=>{
     if (event.target.closest('[data-action="restart"]')) restart();
+    if (event.target.closest('[data-action="rules"]')) {state.showRules=true;render();}
   });
   function restart() {state.level=1;state.round=0;startRound();}
-  startRound();
+  render();
   </script>
 </body>
 </html>
